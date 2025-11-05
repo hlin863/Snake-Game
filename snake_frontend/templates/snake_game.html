@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Snake Game</title>
+
+    <style>
+        /* === Global Style === */
+        body {
+            background: linear-gradient(135deg, #e8f5e9, #c8e6c9);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            font-family: "Poppins", sans-serif;
+        }
+
+        h1 {
+            color: #2e7d32;
+            font-size: 2rem;
+            margin-bottom: 10px;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1);
+        }
+
+        #hud {
+            margin-top: 15px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 15px;
+            font-size: 1.1rem;
+            color: #2e7d32;
+            font-weight: 600;
+        }
+
+        /* === Canvas Board === */
+        canvas {
+            border: 8px solid #33691e;
+            border-radius: 10px;
+            background: #9ccb5a;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15);
+            margin-top: 20px;
+        }
+
+        /* === Mode Buttons === */
+        .mode-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-top: 25px;
+        }
+
+        .mode-btn {
+            width: 180px;
+            padding: 14px 18px;
+            border: none;
+            border-radius: 12px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            color: white;
+            transition: all 0.25s ease;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+        }
+
+        .mode-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 6px 14px rgba(0, 0, 0, 0.25);
+        }
+
+        .user-btn {
+            background: linear-gradient(135deg, #43a047, #66bb6a);
+        }
+
+        .ai-btn {
+            background: linear-gradient(135deg, #1976d2, #42a5f5);
+        }
+
+        /* === Footer / Score === */
+        #status {
+            margin-top: 15px;
+            color: #2e7d32;
+            font-weight: 500;
+            font-size: 1rem;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>🐍 Snake Game</h1>
+
+    <div class="mode-buttons">
+        <button class="mode-btn user-btn" id="userBtn">🎮 User Play</button>
+        <button class="mode-btn ai-btn" id="aiBtn">🤖 AI Play</button>
+    </div>
+
+    <canvas id="gameCanvas" width="400" height="400"></canvas>
+
+    <div id="hud">
+        <span>🍎 <span id="score">0</span></span>
+        <span>🏆 <span id="highscore">0</span></span>
+        <button onclick="toggleFull()">⛶</button>
+    </div>
+
+    <p id="status">Press arrow keys to move!</p>
+
+    <script>
+        const canvas = document.getElementById("gameCanvas");
+        const ctx = canvas.getContext("2d");
+        let snake = [{ x: 5, y: 5 }];
+        let dir = { x: 1, y: 0 };
+        let apple = { x: 8, y: 5 };
+        let score = 0;
+        let aiMode = false;
+
+        function draw() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            for (let i = 0; i < 20; i++)
+                for (let j = 0; j < 20; j++) {
+                    ctx.fillStyle = (i + j) % 2 ? "#9ccb5a" : "#a5d66a";
+                    ctx.fillRect(j * 20, i * 20, 20, 20);
+                }
+
+            // draw apple
+            ctx.fillStyle = "#e63b2e";
+            ctx.beginPath();
+            ctx.arc(apple.x * 20 + 10, apple.y * 20 + 10, 8, 0, Math.PI * 2);
+            ctx.fill();
+
+            // draw snake
+            ctx.fillStyle = "#3578e5";
+            for (let s of snake) ctx.fillRect(s.x * 20, s.y * 20, 18, 18);
+        }
+
+        function update() {
+            const head = { x: snake[0].x + dir.x, y: snake[0].y + dir.y };
+            snake.unshift(head);
+            if (head.x === apple.x && head.y === apple.y) {
+                score++;
+                apple = { x: Math.floor(Math.random() * 20), y: Math.floor(Math.random() * 20) };
+            } else {
+                snake.pop();
+            }
+            document.getElementById("score").textContent = score;
+        }
+
+        function loop() {
+            update();
+            draw();
+            setTimeout(loop, 150);
+        }
+
+        // Player control
+        document.addEventListener("keydown", (e) => {
+            if (e.key === "ArrowUp" && dir.y === 0) dir = { x: 0, y: -1 };
+            if (e.key === "ArrowDown" && dir.y === 0) dir = { x: 0, y: 1 };
+            if (e.key === "ArrowLeft" && dir.x === 0) dir = { x: -1, y: 0 };
+            if (e.key === "ArrowRight" && dir.x === 0) dir = { x: 1, y: 0 };
+        });
+
+        // Mode switch
+        document.getElementById("userBtn").addEventListener("click", () => {
+            aiMode = false;
+            document.getElementById("status").textContent = "User mode activated 🎮";
+        });
+
+        document.getElementById("aiBtn").addEventListener("click", () => {
+            aiMode = true;
+            document.getElementById("status").textContent = "AI mode activated 🤖 (coming soon)";
+        });
+
+        function toggleFull() {
+            if (!document.fullscreenElement) document.body.requestFullscreen();
+            else document.exitFullscreen();
+        }
+
+        loop();
+    </script>
+</body>
+
+</html>
