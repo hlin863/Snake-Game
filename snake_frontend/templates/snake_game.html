@@ -137,15 +137,78 @@
         }
 
         function update() {
+            if (aiMode) dir = aiMove(); // Let AI choose direction
+
             const head = { x: snake[0].x + dir.x, y: snake[0].y + dir.y };
             snake.unshift(head);
+
+            // Game over conditions
+            if (
+                head.x < 0 ||
+                head.x >= 20 ||
+                head.y < 0 ||
+                head.y >= 20 ||
+                snake.slice(1).some((s) => s.x === head.x && s.y === head.y)
+            ) {
+                document.getElementById("status").textContent = "💀 Game Over!";
+                snake = [{ x: 5, y: 5 }];
+                dir = { x: 1, y: 0 };
+                score = 0;
+                return;
+            }
+
+            // Apple eaten
             if (head.x === apple.x && head.y === apple.y) {
                 score++;
                 apple = { x: Math.floor(Math.random() * 20), y: Math.floor(Math.random() * 20) };
             } else {
                 snake.pop();
             }
+
             document.getElementById("score").textContent = score;
+        }
+
+
+        // === AI Decision Making ===
+        function aiMove() {
+            const head = snake[0];
+
+            // Directions the snake can move
+            const possibleDirs = [
+                { x: 0, y: -1 }, // Up
+                { x: 0, y: 1 },  // Down
+                { x: -1, y: 0 }, // Left
+                { x: 1, y: 0 },  // Right
+            ];
+
+            // Filter valid moves (avoid going back into itself or outside walls)
+            const validMoves = possibleDirs.filter((d) => {
+                const next = { x: head.x + d.x, y: head.y + d.y };
+                const hitWall = next.x < 0 || next.x >= 20 || next.y < 0 || next.y >= 20;
+                const hitSelf = snake.some((s) => s.x === next.x && s.y === next.y);
+                return !hitWall && !hitSelf;
+            });
+
+            if (validMoves.length === 0) return dir; // No safe moves, keep going
+
+            // Heuristic: pick direction that minimizes Manhattan distance to apple
+            let bestMove = validMoves[0];
+            let bestScore = Infinity;
+
+            for (let d of validMoves) {
+                const next = { x: head.x + d.x, y: head.y + d.y };
+                // Give extra penalty for moves near walls or its own body
+                const distToWall = Math.min(next.x, 19 - next.x, next.y, 19 - next.y);
+                const penalty = distToWall < 2 ? 3 : 0; // discourage edges
+                const dist = Math.abs(next.x - apple.x) + Math.abs(next.y - apple.y) + penalty;
+
+                if (dist < bestScore) {
+                    bestScore = dist;
+                    bestMove = d;
+                }
+            }
+
+            return bestMove;
         }
 
         function loop() {
@@ -170,7 +233,7 @@
 
         document.getElementById("aiBtn").addEventListener("click", () => {
             aiMode = true;
-            document.getElementById("status").textContent = "AI mode activated 🤖 (coming soon)";
+            document.getElementById("status").textContent = "AI mode activated 🤖 — Snake is learning...";
         });
 
         function toggleFull() {
