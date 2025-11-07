@@ -1,7 +1,9 @@
-from flask import Flask, render_template, jsonify
+from flask import Flask, render_template, request, jsonify
+import json, os
 from snake_backend.engine import SnakeEngine
 
 app = Flask(__name__)
+DATA_FILE = os.path.join(os.getcwd(), "Data", "Game_Results.json")
 
 engine = SnakeEngine(n=5)
 T = 0
@@ -45,6 +47,19 @@ def reset():
     T = 0
     running = False
     return jsonify({"status": "reset"})
+
+@app.route("/save_result", methods=["POST"])
+def save_result():
+    data = request.get_json()
+    os.makedirs(os.path.dirname(DATA_FILE), exist_ok=True)
+    try:
+        results = json.load(open(DATA_FILE))
+    except FileNotFoundError:
+        results = []
+    results.append(data)
+    with open(DATA_FILE, "w") as f:
+        json.dump(results, f, indent=2)
+    return jsonify({"status": "saved"})
 
 @app.route("/game")
 def game():

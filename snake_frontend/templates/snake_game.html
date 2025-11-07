@@ -80,11 +80,21 @@
             font-weight: 500;
             font-size: 1rem;
         }
+
+        #nameInput {
+            margin-top: 15px;
+            padding: 10px;
+            border-radius: 8px;
+            border: 1px solid #66bb6a;
+            text-align: center;
+            width: 200px;
+        }
     </style>
 </head>
 
 <body>
     <h1>🐍 Snake Game</h1>
+    <input id="nameInput" placeholder="Enter your name (optional)" />
     <div class="mode-buttons">
         <button class="mode-btn user-btn" id="userBtn">🎮 User Play</button>
         <button class="mode-btn ai-btn" id="aiBtn">🤖 AI Play</button>
@@ -106,8 +116,7 @@
         let snake = [{ x: 5, y: 5 }];
         let dir = { x: 1, y: 0 };
         let apple = { x: 8, y: 5 };
-        let score = 0;
-        let aiMode = false;
+        let score = 0, aiMode = false, playerName = "";
 
         function draw() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -136,7 +145,6 @@
             const queue = [nextHead];
             const visited = new Set();
             visited.add(`${nextHead.x},${nextHead.y}`);
-
             while (queue.length) {
                 const node = queue.shift();
                 if (node.x === tail.x && node.y === tail.y) return true;
@@ -214,25 +222,40 @@
             return bestMove;
         }
 
+        async function recordResult() {
+            const name = aiMode
+                ? "AI_" + Math.random().toString(36).substring(2, 7)
+                : (playerName || "User_" + Math.random().toString(36).substring(2, 5));
+            const result = {
+                name,
+                mode: aiMode ? "AI" : "User",
+                score,
+                timestamp: new Date().toISOString()
+            };
+            await fetch("/save_result", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(result)
+            });
+        }
+
         function update() {
             if (aiMode) dir = aiMove() || dir;
             const head = { x: snake[0].x + dir.x, y: snake[0].y + dir.y };
             snake.unshift(head);
-
             if (head.x < 0 || head.x >= 20 || head.y < 0 || head.y >= 20 ||
                 snake.slice(1).some(s => s.x === head.x && s.y === head.y)) {
                 document.getElementById("status").textContent = "💀 Game Over!";
+                recordResult();
                 snake = [{ x: 5, y: 5 }];
                 dir = { x: 1, y: 0 };
                 score = 0;
                 return;
             }
-
             if (head.x === apple.x && head.y === apple.y) {
                 score++;
                 apple = { x: Math.floor(Math.random() * 20), y: Math.floor(Math.random() * 20) };
             } else snake.pop();
-
             document.getElementById("score").textContent = score;
         }
 
@@ -252,6 +275,7 @@
 
         document.getElementById("userBtn").addEventListener("click", () => {
             aiMode = false;
+            playerName = document.getElementById("nameInput").value;
             document.getElementById("status").textContent = "User mode activated 🎮";
         });
 
