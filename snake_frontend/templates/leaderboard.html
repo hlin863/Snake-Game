@@ -72,6 +72,7 @@
     <table>
         <thead>
             <tr>
+                <th>Place</th>
                 <th>User Name</th>
                 <th>Mode</th>
                 <th>Score</th>
@@ -86,13 +87,23 @@
         async function loadLeaderboard() {
             const res = await fetch('/static/Data/Game_Results.json');
             const data = await res.json();
+            data.sort((a, b) => b.score - a.score);
             const tbody = document.getElementById('leaderboard-body');
             tbody.innerHTML = '';
-            data.forEach(item => {
+            let place = 1;
+            let prevScore = null;
+            data.forEach((item, i) => {
+                if (prevScore === null || item.score < prevScore) place = i + 1;
+                prevScore = item.score;
                 const tr = document.createElement('tr');
                 const date = new Date(item.timestamp);
                 const formatted = date.toLocaleString();
+                let medal = place === 1 ? '<img src="/static/Images/gold.png" width="25">' :
+                    place === 2 ? '<img src="/static/Images/silver.png" width="25">' :
+                        place === 3 ? '<img src="/static/Images/bronze.png" width="25">' :
+                            place;
                 tr.innerHTML = `
+                    <td>${medal}</td>
                     <td>${item.name}</td>
                     <td>${item.mode}</td>
                     <td>${item.score}</td>
