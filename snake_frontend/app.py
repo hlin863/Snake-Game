@@ -65,5 +65,9 @@ def save_result():
 def game():
     return render_template("snake_game.html")
 
+@app.route("/leaderboard")
+def leaderboard():
+    return render_template("leaderboard.html")
+
 if __name__ == "__main__":
     app.run(debug=True)
