@@ -107,6 +107,7 @@
     <div id="hud">
         <span>🍎 <span id="score">0</span></span>
         <span>🏆 <span id="highscore">0</span></span>
+        <button id="pauseBtn">⏸️</button>
         <button onclick="toggleFull()">⛶</button>
     </div>
 
@@ -133,6 +134,15 @@
             ctx.fill();
             ctx.fillStyle = "#3578e5";
             for (let s of snake) ctx.fillRect(s.x * 20, s.y * 20, 18, 18);
+
+            if (paused) {
+                ctx.fillStyle = "rgba(0, 0, 0, 0.4)";
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                ctx.fillStyle = "#ffffff";
+                ctx.font = "bold 28px Poppins";
+                ctx.textAlign = "center";
+                ctx.fillText("⏸️ Paused", canvas.width / 2, canvas.height / 2);
+            }
         }
 
         function isSafe(x, y) {
@@ -261,12 +271,21 @@
             document.getElementById("score").textContent = score;
         }
 
+        let paused = false;
+
         function loop() {
-            update();
+            if (!paused) update();
             draw();
             const speed = aiMode ? Math.max(60, 150 - score * 5) : 150;
             setTimeout(loop, speed);
         }
+
+        document.getElementById("pauseBtn").addEventListener("click", () => {
+            paused = !paused;
+            const btn = document.getElementById("pauseBtn");
+            btn.textContent = paused ? "▶️" : "⏸️";
+            document.getElementById("status").textContent = paused ? "Game paused ⏸️" : "Game resumed ▶️";
+        });
 
         document.addEventListener("keydown", e => {
             if (e.key === "ArrowUp" && dir.y === 0) dir = { x: 0, y: -1 };
