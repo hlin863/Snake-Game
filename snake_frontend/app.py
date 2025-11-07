@@ -3,7 +3,7 @@ import json, os
 from snake_backend.engine import SnakeEngine
 
 app = Flask(__name__)
-DATA_FILE = os.path.join(os.getcwd(), "Data", "Game_Results.json")
+DATA_FILE = os.path.join(str(app.static_folder), "Data", "Game_Results.json")
 
 engine = SnakeEngine(n=5)
 T = 0

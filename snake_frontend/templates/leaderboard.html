@@ -84,7 +84,7 @@
 
     <script>
         async function loadLeaderboard() {
-            const res = await fetch('Data/Game_Results.json');
+            const res = await fetch('/static/Data/Game_Results.json');
             const data = await res.json();
             const tbody = document.getElementById('leaderboard-body');
             tbody.innerHTML = '';
