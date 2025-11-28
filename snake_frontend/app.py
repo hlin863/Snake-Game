@@ -72,6 +72,3 @@ def game():
 @app.route("/leaderboard")
 def leaderboard():
     return render_template("leaderboard.html")
-
-if __name__ == "__main__":
-    app.run(debug=True)
